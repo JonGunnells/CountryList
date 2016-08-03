@@ -1,54 +1,64 @@
-    import java.io.File;
-    import java.io.FileNotFoundException;
-    import java.util.ArrayList;
-    import java.util.Scanner;
 
-    //used class template
-    public class Main {
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
 
-        public static ArrayList<Countries> parseCountryList(String fileName) throws FileNotFoundException {
-            ArrayList<Countries> CountryList = new ArrayList<>();
-            File f = new File(fileName);
-            Scanner fileScanner = new Scanner(f);
-            while (fileScanner.hasNext()) {
-                String line = fileScanner.nextLine();
-                String[] columns = line.split("\\|");
-                Countries countries = new Countries(Integer.valueOf(columns[0]), columns[1], columns[2]);
-                CountryList.add(countries);
-            }
-            return CountryList;
-
-        }
-
-        public static void printCountryList(ArrayList<Countries> countryList, int currentCountry) {
-            int countryId = 0;
-            for (Countries countries : countryList) {
-                if (countries.number == currentCountry) {
-                    System.out.printf("[%s] %s by %s\n", countryId, countries.name, countries.abbreviation);
-                }
-                countryId++;
-            }
-
-        }
-        public static void main(String[] args) throws FileNotFoundException {
-            //parse file
-            ArrayList<Countries> CountryList = parseCountryList("CountryList.txt");
-
-            //start loop
-            Scanner consoleScanner = new Scanner(System.in);
-            int currentPost = -1;
-            while (true) {
-
-                //print out replies to current post
-                printCountryList(CountryList, currentPost);
-
-                //ask for new id
-                System.out.println(" Type the first letter a country ");
-                currentPost = Integer.valueOf(consoleScanner.nextLine());
+public class Main {
+    static String FILE = "Countries.txt";
 
 
-            }
-        }
+
+    public static void readFile(Scanner fileScanner, HashMap<String, ArrayList<Countries>> map) {
+        String line = fileScanner.nextLine();
+        String[] columns = line.split("\\|");
+        Countries country = new Countries(columns[0], columns[1]);
+        String firstLetter = String.valueOf(columns[1].charAt(0));
+        String letter = firstLetter.toUpperCase();
+
+        if (!map.containsKey(letter)) map.put(letter, new ArrayList<>());
+
+        ArrayList<Countries> aL = map.get(letter);
+        aL.add(country);
     }
 
 
+    public static void createList(String finalQuery, HashMap<String, ArrayList<Countries>> map) throws IOException {
+
+        File file = new File(finalQuery + "_countries.txt");
+        FileWriter fw = new FileWriter(file);
+
+        ArrayList<Countries> aL = map.get(finalQuery);
+        for (Countries country : aL) {
+            String line = String.format("%s\n", country.name);
+            fw.append(line);
+        }
+        fw.close();
+    }
+
+
+    public static void main(String[] args) throws Exception {
+
+        HashMap<String, ArrayList<Countries>> map = new HashMap<>();
+
+        File f = new File(FILE);
+
+
+
+        Scanner fileScanner = new Scanner(f);
+        Scanner scanner = new Scanner(System.in);
+
+
+        while (fileScanner.hasNext()) {
+            readFile(fileScanner, map);
+        }
+
+        System.out.println("Type the first letter of a country");
+        String entry = (scanner.nextLine());
+        String finalEntry = entry.toUpperCase();
+        createList(finalEntry, map);
+        System.out.println("List Created");
+        }
+    }
